@@ -68,9 +68,20 @@ def enriched_order_details(df_orders, df_customers, df_products):
     df_customers = df_customers.alias("c")
     df_products = df_products.alias("p")
 
+    
+    # Join and aggregate with required fields
     df_joined = df_orders.join(df_customers, F.col("o.customer_id") == F.col("c.customer_id"), "left") \
-                         .join(df_products, F.col("o.product_id") == F.col("p.product_id"), "left")\
-                         .select("o.order_id","c.customer_name","c.country", "p.Category","p.Sub-Category","o.profit")
+                         .join(df_products, F.col("o.product_id") == F.col("p.product_id"), "left") \
+                         .groupBy(
+                             F.col("o.order_id"),
+                             F.col("o.order_date"),
+                             F.col("c.customer_name"),
+                             F.col("c.country"),
+                             F.col("p.category"),
+                             F.col("p.sub-category")
+                         ).agg(
+                             F.round(F.sum("o.profit"), 2).alias("total_profit")
+                         )
     return df_joined
 
 # COMMAND ----------
